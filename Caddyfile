@@ -1,0 +1,17 @@
+kekkonsnap.example.com {
+	encode gzip
+
+	# SSE endpoint — disable buffering for real-time streaming
+	@sse path /api/events/*/status
+	reverse_proxy @sse app:3000 {
+		flush_interval -1
+	}
+
+	# All other traffic
+	reverse_proxy app:3000
+
+	# 15MB upload size limit
+	request_body {
+		max_size 15MB
+	}
+}
