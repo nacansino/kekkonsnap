@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useSession } from "@/components/providers/SessionProvider";
+import { useSession, useSessionRefresh } from "@/components/providers/SessionProvider";
 import TermsConsent from "@/components/guest/TermsConsent";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
@@ -11,6 +11,7 @@ export default function TermsPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const session = useSession();
+  const refreshSession = useSessionRefresh();
 
   const [termsText, setTermsText] = useState<string | null>(null);
   const [isAgreeing, setIsAgreeing] = useState(false);
@@ -82,6 +83,7 @@ export default function TermsPage() {
         return;
       }
 
+      await refreshSession();
       router.replace(`/${slug}/camera`);
     } catch {
       setError("Network error. Please check your connection and try again.");

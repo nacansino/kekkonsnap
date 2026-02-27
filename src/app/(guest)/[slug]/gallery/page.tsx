@@ -101,10 +101,10 @@ export default function GalleryPage() {
       {/* Page header */}
       <div className="mb-6 text-center">
         <h2 className="font-heading text-2xl font-semibold text-charcoal">
-          Photo Gallery
+          Snap Gallery
         </h2>
         <p className="mt-1 text-sm text-charcoal-light/70">
-          {photos.length} photos captured at this event
+          {photos.length} snaps captured at this event
         </p>
       </div>
 
@@ -185,7 +185,7 @@ export default function GalleryPage() {
       {photos.length === 0 && (
         <div className="flex flex-1 items-center justify-center">
           <p className="text-charcoal-light/70 text-sm">
-            No photos have been uploaded yet.
+            No snaps have been uploaded yet.
           </p>
         </div>
       )}

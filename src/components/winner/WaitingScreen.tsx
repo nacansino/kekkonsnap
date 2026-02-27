@@ -13,7 +13,7 @@ export default function WaitingScreen({
     <div
       className={`
         flex flex-col items-center justify-center gap-8
-        min-h-[60dvh] px-8 text-center
+        px-8 text-center
         ${className}
       `}
     >

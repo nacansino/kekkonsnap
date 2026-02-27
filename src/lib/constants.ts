@@ -10,7 +10,7 @@ export const MAX_PHOTO_SIZE_BYTES = 20 * 1024 * 1024; // 20MB raw upload limit
 export const FULL_IMAGE_MAX_DIMENSION = 2048;
 export const THUMBNAIL_SIZE = 300;
 export const FULL_IMAGE_QUALITY = 100;
-export const THUMBNAIL_QUALITY = 70;
+export const THUMBNAIL_QUALITY = 85;
 
 export const RATE_LIMITS = {
   PHOTO_UPLOAD: { limit: 1, windowMs: 2000 },

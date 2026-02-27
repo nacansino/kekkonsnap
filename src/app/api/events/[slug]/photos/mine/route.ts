@@ -37,6 +37,7 @@ export async function GET(
   const result = myPhotos.map((p) => ({
     id: p.id,
     thumbnailUrl: `/api/photos/${p.id}/thumb`,
+    fullUrl: `/api/photos/${p.id}/full`,
     createdAt: p.createdAt,
   }));
 

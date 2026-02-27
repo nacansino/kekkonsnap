@@ -88,6 +88,13 @@ export default function CameraViewfinder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Stop the camera stream once all shots are used
+  useEffect(() => {
+    if (disabled) {
+      stopStream();
+    }
+  }, [disabled, stopStream]);
+
   const handleFlip = useCallback(() => {
     const next = facingMode === "environment" ? "user" : "environment";
     setFacingMode(next);
@@ -129,7 +136,7 @@ export default function CameraViewfinder({
   // -- Denied state --
   if (cameraState === "denied") {
     return (
-      <div className="flex h-dvh w-full items-center justify-center bg-charcoal">
+      <div className="flex h-full w-full items-center justify-center bg-charcoal">
         <CameraPermissionPrompt onRetry={() => startCamera(facingMode)} />
       </div>
     );
@@ -138,7 +145,7 @@ export default function CameraViewfinder({
   // -- Error state --
   if (cameraState === "error") {
     return (
-      <div className="flex h-dvh w-full flex-col items-center justify-center gap-6 bg-charcoal px-8 text-center">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-6 bg-charcoal px-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
           <svg
             width="28"
@@ -164,7 +171,7 @@ export default function CameraViewfinder({
   }
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-black">
+    <div className="relative h-full w-full overflow-hidden bg-black">
       {/* Video feed */}
       <video
         ref={videoRef}
@@ -217,7 +224,7 @@ export default function CameraViewfinder({
             </div>
             <p className="font-heading text-xl text-white">All shots used!</p>
             <p className="text-sm text-white/60">
-              You&apos;ve captured all {totalShots} of your photos.
+              You&apos;ve captured all {totalShots} of your snaps.
             </p>
           </div>
         </div>

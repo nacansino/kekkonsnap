@@ -313,7 +313,7 @@ export default function AdminDashboardPage() {
       {origin && (
         <Card padding="md">
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="relative shrink-0">
+            <div className="group relative shrink-0">
               <div
                 ref={qrCodeRef}
                 className="bg-white p-2 text-charcoal rounded-xl shadow-sm border border-beige"
@@ -323,7 +323,7 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={handleDownloadQr}
-                className="absolute top-1 right-1 inline-flex h-7 w-7 items-center justify-center rounded-full border border-beige bg-cream/95 text-charcoal-light shadow-sm transition-colors hover:text-charcoal hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-dust focus-visible:ring-offset-2"
+                className="absolute top-1 right-1 inline-flex h-7 w-7 items-center justify-center rounded-full border border-beige bg-cream/95 text-charcoal-light shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:text-charcoal hover:bg-cream focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-dust focus-visible:ring-offset-2"
                 aria-label="Download QR code"
                 title="Download QR code"
               >

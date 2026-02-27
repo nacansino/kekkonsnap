@@ -80,6 +80,9 @@ Jane Doe,2
 | `npm run db:generate` | Generate Drizzle migrations |
 | `npm run db:create-event` | Create a new event via CLI |
 | `npm run db:seed` | Seed guest list from file |
+| `make build` | Production build (alias) |
+| `make start` | Start production server (daemon) |
+| `make stop` | Stop production server |
 
 ## Deployment (Docker + Caddy)
 
@@ -144,6 +147,7 @@ src/
 | `JWT_SECRET` | Secret for signing JWTs (min 32 chars) | Dev default provided |
 | `DATABASE_URL` | Path to SQLite database | `./data/kekkonsnap.db` |
 | `UPLOAD_DIR` | Path to photo storage directory | `./data/uploads` |
+| `ADMIN_MASTER_PASSWORD` | Master password for creating/managing events | `kekkonsnap-admin` |
 
 ## Tests
 
@@ -151,4 +155,4 @@ src/
 npm test
 ```
 
-153 tests across 9 test files covering the database schema, auth/JWT, rate limiting, image processing, storage, guest API routes, and admin API routes.
+153 tests across 9 test files covering the database schema, auth/JWT, rate limiting, image processing, storage, fuzzy matching, guest API routes, and admin API routes.

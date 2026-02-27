@@ -32,7 +32,7 @@ export default async function GuestLayout({ children, params }: GuestLayoutProps
   return (
     <SessionProvider slug={slug}>
       <EventStreamProvider slug={slug} initialStatus={event.status}>
-        <div className="flex min-h-dvh flex-col bg-cream">
+        <div className="flex h-dvh flex-col bg-cream">
           {/* Minimal header */}
           <header className="flex flex-col items-center justify-center px-4 py-3 border-b border-beige">
             <h1 className="font-heading text-lg text-rose-dust tracking-wide">
@@ -42,7 +42,7 @@ export default async function GuestLayout({ children, params }: GuestLayoutProps
           </header>
 
           {/* Page content */}
-          <main className="flex flex-1 flex-col">
+          <main className="flex flex-1 flex-col min-h-0">
             {children}
           </main>
         </div>

@@ -34,7 +34,7 @@ export default function WinnerReveal({
     <div
       className={`
         relative flex flex-col items-center justify-center gap-6
-        px-6 py-12 text-center
+        px-6 py-4 text-center
         ${className}
       `}
     >

@@ -37,7 +37,7 @@ Inspired by [your wedding site](https://aljeriandniel.com/):
 - **`sessions`** — id (UUID), eventId, guestId, agreedToTerms, userAgent, timestamps
 - **`photos`** — id, eventId, guestId, sessionId, storagePath, thumbnailPath, mimeType, fileSize, width, height, isWinner, timestamps
 
-## Guest Flow (5 screens)
+## Guest Flow (6 screens)
 
 ### 1. Landing Page — `/[slug]`
 - Guest scans QR code, lands here
@@ -57,18 +57,22 @@ Inspired by [your wedding site](https://aljeriandniel.com/):
 - Each photo auto-uploads immediately (JPEG blob → server compresses to WebP)
 - Shutter disabled when quota reached
 
-### 4. My Photos — `/[slug]/photos`
-- Grid of guest's own photos (thumbnails, tap for full-size)
+### 4. Your Snaps — `/[slug]/photos`
+- Grid of guest's own snaps (thumbnails, tap for full-size lightbox)
+- Lightbox closes when tapping outside the photo
 - **Cannot delete** — no delete button exists
 - During active/locked event: can ONLY see own photos
+- Pinned bottom navigation: "Back to Camera" (if shots remaining) + "Go to Winner Reveal"
 
 ### 5. Winner Reveal — `/[slug]/winner`
-- While event is active/locked: elegant "waiting" screen
+- While event is active/locked: elegant "waiting" screen with "Your Snaps" link
 - SSE pushes winner announcement → confetti animation + winning photo + winner's name
-- "View All Photos" button appears → links to full gallery
+- "View All Snaps" button appears → links to full gallery
+- "Your Snaps" link to own photos on both waiting and announced states
+- Camera is stopped when all shots are used (stream released)
 
-### 6. All Photos Gallery — `/[slug]/gallery` (post-announcement only)
-- All photos from all guests, winner pinned at top
+### 6. Snap Gallery — `/[slug]/gallery` (post-announcement only)
+- All snaps from all guests, winner pinned at top
 - Only accessible after admin announces winner
 
 ## Admin Flow
@@ -127,8 +131,8 @@ Uses `navigator.mediaDevices.getUserMedia()` exclusively:
 On upload (`src/lib/image-processing.ts`):
 1. Validate it's a real image via Sharp metadata
 2. Auto-orient from EXIF (`.rotate()` with no args)
-3. Resize to max 2048px, compress to WebP at 82% → ~200-500KB (from 5-10MB originals)
-4. Generate 300x300 square thumbnail at WebP 70% → ~15-30KB
+3. Resize to max 2048px, compress to WebP at 100% quality → preserves full detail
+4. Generate 300x300 square thumbnail at WebP 85% → ~20-40KB
 5. Write both to disk, store paths in DB
 
 **Estimated storage**: 100 guests x 7 shots = 700 photos x ~425KB avg = ~300MB total
@@ -136,7 +140,7 @@ On upload (`src/lib/image-processing.ts`):
 ## Security
 
 - **Sessions**: JWT in HttpOnly/Secure/SameSite=Strict cookies (24hr expiry)
-- **Admin**: separate cookie, bcrypt password, 4hr expiry
+- **Admin**: separate cookie, bcrypt password, 4hr expiry; master password via `ADMIN_MASTER_PASSWORD` env var for event management API
 - **Quota**: enforced server-side (COUNT query), client display is cosmetic only
 - **Rate limiting**: in-memory sliding window (uploads: 1/2s, login: 5/min, identify: 10/min)
 - **Photo access**: during event, guests can only fetch their own photos (guestId check); post-announcement, all photos accessible

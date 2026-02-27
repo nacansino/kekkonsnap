@@ -180,10 +180,10 @@ export default function CameraPage() {
         <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-16">
           <div className="flex flex-col items-center gap-3">
             <p className="font-heading text-lg text-white text-center">
-              All photos captured!
+              All snaps captured!
             </p>
             <p className="text-sm text-white/60 text-center mb-2">
-              View your photos or head to the winner reveal.
+              View your snaps or head to the winner reveal.
             </p>
             <div className="flex gap-3 w-full max-w-xs">
               <Button
@@ -192,7 +192,7 @@ export default function CameraPage() {
                 className="flex-1 !border-white/30 !text-white hover:!bg-white/10"
                 onClick={() => router.push(`/${slug}/photos`)}
               >
-                My Photos
+                Your Snaps
               </Button>
               <Button
                 variant="primary"

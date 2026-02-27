@@ -11,6 +11,7 @@ interface ModalProps {
 
 export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
@@ -37,7 +38,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => {
-        if (e.target === overlayRef.current) onClose();
+        if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose();
       }}
     >
       {/* Backdrop */}
@@ -48,6 +49,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
 
       {/* Panel */}
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}

@@ -67,71 +67,62 @@ export default function MyPhotosPage() {
   const remaining = Math.max(0, shotLimit - photos.length);
 
   return (
-    <div className="flex flex-1 flex-col px-4 py-6">
+    <div className="flex flex-1 flex-col overflow-hidden">
       {/* Page header */}
-      <div className="mb-6 text-center">
+      <div className="shrink-0 px-4 pt-6 pb-4 text-center">
         <h2 className="font-heading text-2xl font-semibold text-charcoal">
-          My Photos
+          Your Snaps
         </h2>
         <p className="mt-1 text-sm text-charcoal-light/70">
-          {photos.length} of {shotLimit} shots taken
+          {photos.length} of {shotLimit} snaps taken
         </p>
       </div>
 
-      {/* Photo grid */}
-      {photos.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-beige">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-rose-dust/60"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
+      {/* Photo grid — scrollable */}
+      <div className="flex-1 overflow-y-auto px-4">
+        {photos.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center py-12">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-beige">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-rose-dust/60"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+            </div>
+            <p className="text-charcoal-light/70 text-sm max-w-xs">
+              You haven&apos;t taken any snaps yet. Head to the camera to start capturing!
+            </p>
+            <Button onClick={() => router.push(`/${slug}/camera`)} size="md">
+              Open Camera
+            </Button>
           </div>
-          <p className="text-charcoal-light/70 text-sm max-w-xs">
-            You haven&apos;t taken any photos yet. Head to the camera to start capturing!
-          </p>
-          <Button onClick={() => router.push(`/${slug}/camera`)} size="md">
-            Open Camera
-          </Button>
-        </div>
-      ) : (
-        <>
+        ) : (
           <PhotoGrid
             photos={photos}
             onPhotoClick={(index) => setLightboxIndex(index)}
           />
+        )}
+      </div>
 
-          {/* Lightbox */}
-          {lightboxIndex !== null && (
-            <PhotoLightbox
-              photos={photos}
-              initialIndex={lightboxIndex}
-              onClose={() => setLightboxIndex(null)}
-            />
-          )}
-        </>
-      )}
-
-      {/* Bottom navigation */}
-      <div className="mt-6 flex flex-col items-center gap-3 pb-[env(safe-area-inset-bottom)]">
+      {/* Bottom navigation — pinned */}
+      <div className="shrink-0 flex flex-col items-center gap-3 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {remaining > 0 && (
           <Button
             variant="primary"
             size="md"
             onClick={() => router.push(`/${slug}/camera`)}
           >
-            Back to Camera ({remaining} shots left)
+            Back to Camera ({remaining} snaps left)
           </Button>
         )}
         <Button
@@ -142,6 +133,15 @@ export default function MyPhotosPage() {
           Go to Winner Reveal
         </Button>
       </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <PhotoLightbox
+          photos={photos}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </div>
   );
 }

@@ -20,34 +20,50 @@ export default function WinnerPage() {
         : "The judges are deliberating...";
 
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-6">
         <WaitingScreen message={message} />
+        <div className="mt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/${slug}/photos`)}
+          >
+            Your Snaps
+          </Button>
+        </div>
       </div>
     );
   }
 
   // Announced state: show the winner reveal
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-12">
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-6">
       {/* Winner reveal (includes its own confetti) */}
       <WinnerReveal
         winnerPhotoUrl={eventState.winnerPhotoUrl}
         winnerGuestName={eventState.winnerGuestName}
       />
 
-      {/* Action button */}
-      <div className="relative z-10 mt-10">
+      {/* Action buttons */}
+      <div className="relative z-10 mt-4 flex flex-col items-center gap-3">
         <Button
           variant="primary"
           size="lg"
           onClick={() => router.push(`/${slug}/gallery`)}
         >
-          View All Photos
+          View All Snaps
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push(`/${slug}/photos`)}
+        >
+          Your Snaps
         </Button>
       </div>
 
       {/* Decorative bottom line */}
-      <div className="relative z-10 mt-8 h-px w-24 bg-rose-dust/15" />
+      <div className="relative z-10 mt-4 h-px w-24 bg-rose-dust/15" />
     </div>
   );
 }

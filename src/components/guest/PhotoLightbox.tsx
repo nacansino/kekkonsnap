@@ -41,6 +41,7 @@ export default function PhotoLightbox({
   const [touchDelta, setTouchDelta] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIndex(currentIndex ?? initialIndex ?? 0);
@@ -127,6 +128,9 @@ export default function PhotoLightbox({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onClick={(e) => {
+        if (imageRef.current && !imageRef.current.contains(e.target as Node)) onClose();
+      }}
     >
       {/* Close button */}
       <button
@@ -216,7 +220,7 @@ export default function PhotoLightbox({
       )}
 
       {/* Image */}
-      <div className="relative h-[85dvh] w-[95vw]">
+      <div ref={imageRef} className="relative h-[85dvh] w-[95vw] pointer-events-none">
         <Image
           key={String(photo.id)}
           src={imageUrl}

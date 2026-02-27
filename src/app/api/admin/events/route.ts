@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { events } from "@/db/schema";
+import { events, guests, sessions, photos } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import createLogger from "@/lib/logger";
@@ -156,7 +156,10 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ error: "Event not found." }, { status: 404 });
     }
 
-    // Delete event (cascading deletes will handle guests, sessions, photos)
+    // Delete child rows first (no CASCADE on foreign keys)
+    await db.delete(photos).where(eq(photos.eventId, event.id)).run();
+    await db.delete(sessions).where(eq(sessions.eventId, event.id)).run();
+    await db.delete(guests).where(eq(guests.eventId, event.id)).run();
     await db.delete(events).where(eq(events.id, event.id)).run();
 
     log.info("Event deleted", { event: body.slug, id: event.id });

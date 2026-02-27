@@ -1022,10 +1022,11 @@ describe("GET /api/events/[slug]/photos/all", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body).toHaveLength(2);
-    expect(body[0].guestName).toBe("John Smith");
-    expect(body[1].isWinner).toBe(true);
-    expect(body[0].thumbnailUrl).toBe("/api/photos/1/thumb");
+    expect(body.photos).toHaveLength(2);
+    expect(body.photos[0].guestName).toBe("John Smith");
+    expect(body.photos[1].isWinner).toBe(true);
+    expect(body.photos[0].thumbnailUrl).toBe("/api/photos/1/thumb");
+    expect(body.photos[0].fullUrl).toBe("/api/photos/1/full");
   });
 });
 
