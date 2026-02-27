@@ -176,6 +176,11 @@ src/
   middleware.ts               # Route protection
 scripts/
   seed.ts, create-event.ts   # CLI scripts for setup
+e2e/
+  global-setup.ts             # Seeds test event + guests via API
+  helpers/auth.ts             # Creates authenticated browser contexts
+  fixtures/test-app.ts        # Custom Playwright fixtures (authedPage, preTermsPage)
+  *.spec.ts                   # Test specs: landing, terms, camera, photos, winner, gallery, full-flow, layout
 data/                         # Docker volume: SQLite DB + uploads/
 Dockerfile, docker-compose.yml, Caddyfile
 ```
@@ -220,6 +225,34 @@ Dockerfile, docker-compose.yml, Caddyfile
 25. Mobile device testing
 26. Generate QR code for the event URL
 
+## Testing
+
+### Unit tests (Vitest)
+
+153 tests across 9 test files:
+- Database schema constraints and CRUD
+- JWT session creation/verification
+- Admin auth + password hashing
+- Rate limiting (sliding window)
+- Image processing pipeline (Sharp)
+- Storage layer
+- Guest API routes (identify, agree, photos)
+- Admin API routes (events, guests, lock, announce)
+
+### E2E tests (Playwright)
+
+304 tests across 8 device profiles (iPhone SE, iPhone 14, iPhone 15 Pro Max, Pixel 7, Galaxy S23, Desktop Chrome/Firefox/Safari).
+
+**Test data strategy**: global setup seeds a test event and guests via real HTTP API calls (not direct DB imports), testing more of the real stack.
+
+**Auth fixtures**: `authedPage` (identified + agreed) and `preTermsPage` (identified only) create browser contexts with session cookies obtained from real API calls. Cookies are cached per guest to avoid hitting the 10/60s rate limit.
+
+**Camera mocking**: `getUserMedia` is overridden via `page.addInitScript()` to simulate both permission-denied and ready states using a canvas capture stream.
+
+**Known limitation**: The full end-to-end flow test (landing → identify → terms → camera) is skipped on WebKit. WebKit defers `Set-Cookie` headers from `fetch()` responses, so the session cookie isn't immediately available for the subsequent `refreshSession()` call. This doesn't affect real users (page reloads pick up the cookie), only the single-page client-side redirect chain.
+
+**Visual regression**: Per-device screenshot baselines with 5% pixel diff tolerance. Regenerate with `npm run test:e2e:update-snapshots` after intentional UI changes.
+
 ## Verification
 
 1. **Local dev**: `npm run dev`, open on phone (same network), test full guest flow
@@ -230,3 +263,4 @@ Dockerfile, docker-compose.yml, Caddyfile
 6. **Admin flow**: login → view photos → lock → pick winner → announce → verify guests see it
 7. **Download**: test individual photo download + full ZIP download
 8. **Docker**: `docker compose up --build`, verify Caddy serves HTTPS, test full flow
+9. **E2E**: `npm run test:e2e` — 300 pass, 4 skip (WebKit full-flow) across all 8 devices

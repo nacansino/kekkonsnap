@@ -74,8 +74,12 @@ Jane Doe,2
 | `npm run dev` | Start dev server |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
-| `npm test` | Run tests (vitest) |
-| `npm run test:watch` | Run tests in watch mode |
+| `npm test` | Run unit tests (vitest) |
+| `npm run test:watch` | Run unit tests in watch mode |
+| `npm run test:e2e` | Run Playwright e2e tests (all 8 devices) |
+| `npm run test:e2e:ui` | Open Playwright interactive UI |
+| `npm run test:e2e:debug` | Run e2e tests in debug mode |
+| `npm run test:e2e:update-snapshots` | Regenerate visual regression baselines |
 | `npm run lint` | ESLint |
 | `npm run db:generate` | Generate Drizzle migrations |
 | `npm run db:create-event` | Create a new event via CLI |
@@ -83,6 +87,10 @@ Jane Doe,2
 | `make build` | Production build (alias) |
 | `make start` | Start production server (daemon) |
 | `make stop` | Stop production server |
+| `make test` | Run unit tests |
+| `make test-e2e` | Run Playwright e2e tests |
+| `make test-e2e-ui` | Open Playwright interactive UI |
+| `make test-all` | Run unit + e2e tests |
 
 ## Deployment (Docker + Caddy)
 
@@ -151,8 +159,50 @@ src/
 
 ## Tests
 
+### Unit tests
+
 ```bash
 npm test
 ```
 
 153 tests across 9 test files covering the database schema, auth/JWT, rate limiting, image processing, storage, fuzzy matching, guest API routes, and admin API routes.
+
+### E2E tests (Playwright)
+
+```bash
+# Install browsers (first time only)
+npx playwright install --with-deps
+
+# Run all tests across 8 device profiles
+npm run test:e2e
+
+# Interactive UI for visual inspection
+npm run test:e2e:ui
+
+# Regenerate screenshot baselines after intentional UI changes
+npm run test:e2e:update-snapshots
+```
+
+304 tests (38 per device) across 8 device profiles:
+
+| Device | Viewport | Engine |
+|--------|----------|--------|
+| iPhone SE | 320x568 | WebKit |
+| iPhone 14 | 390x844 | WebKit |
+| iPhone 15 Pro Max | 430x932 | WebKit |
+| Pixel 7 | 412x915 | Chromium |
+| Samsung Galaxy S23 | 360x780 | Chromium |
+| Desktop Chrome | 1280x720 | Chromium |
+| Desktop Firefox | 1280x720 | Firefox |
+| Desktop Safari | 1280x720 | WebKit |
+
+Tests cover:
+- **Landing**: autocomplete, button state, viewport bounds
+- **Terms**: checkbox/button interaction, navigation to camera
+- **Camera**: getUserMedia mock (denied + ready states), shutter button positioning
+- **Photos**: empty state, bottom nav visibility
+- **Winner**: waiting state, navigation to photos
+- **Gallery**: redirect when not announced
+- **Full flow**: landing → identify → terms → camera → photos → winner
+- **Layout**: no horizontal overflow, header visibility across all pages
+- **Visual regression**: per-device screenshots with 5% diff tolerance
