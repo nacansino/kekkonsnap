@@ -19,6 +19,7 @@ export const events = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
     lockedAt: integer("locked_at", { mode: "timestamp" }),
     announcedAt: integer("announced_at", { mode: "timestamp" }),
+    scheduledLockAt: integer("scheduled_lock_at", { mode: "timestamp" }),
   },
   (table) => [
     uniqueIndex("events_slug_idx").on(table.slug),

@@ -39,7 +39,8 @@ function migrate(sqlite: Database.Database) {
       terms_text TEXT NOT NULL,
       created_at INTEGER NOT NULL,
       locked_at INTEGER,
-      announced_at INTEGER
+      announced_at INTEGER,
+      scheduled_lock_at INTEGER
     );
     CREATE UNIQUE INDEX IF NOT EXISTS events_slug_idx ON events(slug);
 

@@ -9,7 +9,7 @@ Wedding photo contest web app. Guests scan a QR code, take limited camera-only s
 3. **Agree to terms** (photos are public, can't be deleted)
 4. **Take photos** using the phone camera (no gallery uploads — camera only)
 5. **Limited shots** (configurable, e.g. 7 per guest)
-6. **Admin picks a winner** after locking the event
+6. **Admin picks a winner** after locking the event (can also schedule auto-lock)
 7. **Winner revealed** live on everyone's phone via SSE push
 8. **All photos unlocked** for everyone to see after the announcement
 
@@ -142,11 +142,12 @@ src/
 ## Admin flow
 
 1. Go to `/admin/our-wedding` and enter your password
-2. **During the event:** watch photos come in from the live feed
-3. **Lock the event** when it's time — this stops all new uploads
-4. **Pick a winner** by clicking on a photo
+2. **During the event:** watch photos come in from the live feed, swipe through them in the lightbox
+3. **Lock the event** when it's time — or schedule an auto-lock time
+4. **Pick a winner** by clicking on a photo (or from within the lightbox)
 5. **Announce** — the winner appears on everyone's phone instantly
 6. **Download all photos** as a ZIP organized by guest name
+7. **Navigate** between events using the "Events" link in the nav header
 
 ## Environment variables
 
@@ -165,7 +166,7 @@ src/
 npm test
 ```
 
-153 tests across 9 test files covering the database schema, auth/JWT, rate limiting, image processing, storage, fuzzy matching, guest API routes, and admin API routes.
+164 tests across 11 test files covering the database schema, auth/JWT, rate limiting, image processing, storage, fuzzy matching, guest API routes, admin API routes, schedule-lock API, and schedule-checker.
 
 ### E2E tests (Playwright)
 
@@ -183,7 +184,7 @@ npm run test:e2e:ui
 npm run test:e2e:update-snapshots
 ```
 
-304 tests (38 per device) across 8 device profiles:
+Tests across 8 device profiles:
 
 | Device | Viewport | Engine |
 |--------|----------|--------|
@@ -205,4 +206,5 @@ Tests cover:
 - **Gallery**: redirect when not announced
 - **Full flow**: landing → identify → terms → camera → photos → winner
 - **Layout**: no horizontal overflow, header visibility across all pages
+- **Admin dashboard**: events nav link, photo lightbox, schedule lock modal
 - **Visual regression**: per-device screenshots with 5% diff tolerance

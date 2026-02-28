@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import PhotoLightbox from "@/components/guest/PhotoLightbox";
 import { QRCodeSVG } from "qrcode.react";
 
 // ---------------------------------------------------------------------------
@@ -18,6 +19,7 @@ interface Stats {
   participatingGuests: number;
   photosPerGuest: number;
   eventStatus: "active" | "locked" | "announced";
+  scheduledLockAt: string | null;
 }
 
 interface Photo {
@@ -57,8 +59,10 @@ export default function AdminDashboardPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [confirmAction, setConfirmAction] = useState<"lock" | "announce" | "reopen" | "unlock" | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleLockInput, setScheduleLockInput] = useState("");
   const [error, setError] = useState("");
   const [origin, setOrigin] = useState("");
   const qrCodeRef = useRef<HTMLDivElement | null>(null);
@@ -195,6 +199,53 @@ export default function AdminDashboardPage() {
       await fetchAll();
     } catch {
       setError(`Network error while changing status.`);
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleScheduleLock() {
+    if (!scheduleLockInput) return;
+    setActionLoading("schedule");
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/${slug}/schedule-lock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockAt: new Date(scheduleLockInput).toISOString() }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to schedule lock.");
+        return;
+      }
+      setShowScheduleModal(false);
+      setScheduleLockInput("");
+      await fetchStats();
+    } catch {
+      setError("Network error while scheduling lock.");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleClearSchedule() {
+    setActionLoading("schedule");
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/${slug}/schedule-lock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lockAt: null }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to clear schedule.");
+        return;
+      }
+      await fetchStats();
+    } catch {
+      setError("Network error while clearing schedule.");
     } finally {
       setActionLoading(null);
     }
@@ -376,18 +427,43 @@ export default function AdminDashboardPage() {
             >
               {statusLabels[stats?.eventStatus ?? "active"]}
             </span>
+            {stats?.scheduledLockAt && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border bg-blue-50 text-blue-700 border-blue-200">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Auto-locks at{" "}
+                {new Date(stats.scheduledLockAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                <button
+                  className="ml-1 text-blue-500 hover:text-blue-700 underline"
+                  onClick={handleClearSchedule}
+                >
+                  Cancel
+                </button>
+              </span>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
             {stats?.eventStatus === "active" && (
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={actionLoading === "lock"}
-                onClick={() => setConfirmAction("lock")}
-              >
-                Lock Event
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={actionLoading === "lock"}
+                  onClick={() => setConfirmAction("lock")}
+                >
+                  Lock Event
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowScheduleModal(true)}
+                >
+                  Schedule Lock
+                </Button>
+              </>
             )}
 
             {stats?.eventStatus === "locked" && (
@@ -473,14 +549,14 @@ export default function AdminDashboardPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {photos.map((photo) => (
+            {photos.map((photo, idx) => (
               <div
                 key={photo.id}
                 className={`group relative rounded-xl overflow-hidden shadow-sm transition-shadow hover:shadow-md cursor-pointer ${photo.isWinner
                   ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-cream"
                   : ""
                   }`}
-                onClick={() => setSelectedPhoto(photo)}
+                onClick={() => setSelectedPhotoIndex(idx)}
               >
                 {/* Thumbnail */}
                 <div className="relative aspect-square bg-beige">
@@ -536,54 +612,62 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* Full-size photo modal */}
-      <Modal
-        isOpen={!!selectedPhoto}
-        onClose={() => setSelectedPhoto(null)}
-        title={selectedPhoto ? `Photo by ${selectedPhoto.guestName}` : ""}
-      >
-        {selectedPhoto && (
-          <div className="space-y-4">
-            <Image
-              src={selectedPhoto.fullUrl}
-              alt={`Full-size photo by ${selectedPhoto.guestName}`}
-              width={1600}
-              height={1200}
-              unoptimized
-              sizes="(max-width: 768px) 100vw, 768px"
-              className="h-auto w-full rounded-xl"
-            />
-            <div className="flex items-center justify-between text-sm text-charcoal-light">
-              <span>
-                {new Date(selectedPhoto.capturedAt).toLocaleString()}
-              </span>
-              <span>
-                {(selectedPhoto.fileSize / 1024).toFixed(0)} KB
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <a
-                href={`/api/admin/${slug}/download/${selectedPhoto.id}`}
-                className="inline-flex items-center gap-1 text-sm text-rose-dust hover:text-rose-dust-dark font-medium"
-                download
-              >
-                Download
-              </a>
-              {stats?.eventStatus === "locked" && !selectedPhoto.isWinner && (
-                <button
-                  className="text-sm text-rose-dust hover:text-rose-dust-dark font-medium ml-auto"
-                  onClick={() => {
-                    handlePickWinner(selectedPhoto.id);
-                    setSelectedPhoto(null);
-                  }}
+      {/* Full-size photo lightbox with swipe */}
+      <PhotoLightbox
+        photos={photos.map((p) => ({
+          id: p.id,
+          fullUrl: p.fullUrl,
+          thumbnailUrl: p.thumbnailUrl,
+          alt: `Photo by ${p.guestName}`,
+          capturedAt: p.capturedAt,
+        }))}
+        isOpen={selectedPhotoIndex !== null}
+        currentIndex={selectedPhotoIndex ?? 0}
+        onClose={() => setSelectedPhotoIndex(null)}
+        renderFooter={(photo, _idx) => {
+          const p = photos[_idx];
+          if (!p) return null;
+          return (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 space-y-2">
+              <div className="flex items-center justify-between text-sm text-white/80">
+                <span className="font-medium text-white">{p.guestName}</span>
+                <span>{(p.fileSize / 1024).toFixed(0)} KB</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-white/60">
+                <span>{new Date(p.capturedAt).toLocaleString()}</span>
+              </div>
+              <div className="flex gap-3 pt-1">
+                <a
+                  href={`/api/admin/${slug}/download/${p.id}`}
+                  className="inline-flex items-center gap-1.5 text-sm text-white hover:text-white/80 font-medium transition-colors"
+                  download
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  Select as Winner
-                </button>
-              )}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v11"/><path d="m8 10 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                  Download
+                </a>
+                {stats?.eventStatus === "locked" && !p.isWinner && (
+                  <button
+                    className="text-sm text-amber-400 hover:text-amber-300 font-medium ml-auto transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePickWinner(p.id);
+                      setSelectedPhotoIndex(null);
+                    }}
+                  >
+                    Select as Winner
+                  </button>
+                )}
+                {p.isWinner && (
+                  <span className="text-sm text-amber-400 font-medium ml-auto">
+                    Winner
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </Modal>
+          );
+        }}
+      />
 
       {/* Confirm lock modal */}
       <Modal
@@ -720,6 +804,47 @@ export default function AdminDashboardPage() {
               onClick={() => handleChangeStatus("locked")}
             >
               Revert to Locked
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Schedule lock modal */}
+      <Modal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        title="Schedule Auto-Lock"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-charcoal-light font-body">
+            Set a time to automatically lock the event. Guests will no longer be
+            able to submit photos after this time.
+          </p>
+          <input
+            type="datetime-local"
+            value={scheduleLockInput}
+            onChange={(e) => setScheduleLockInput(e.target.value)}
+            className="w-full rounded-xl border border-beige bg-cream px-4 py-2.5 text-sm text-charcoal font-body focus:outline-none focus:ring-2 focus:ring-rose-dust focus:border-transparent"
+          />
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowScheduleModal(false);
+                setScheduleLockInput("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              loading={actionLoading === "schedule"}
+              onClick={handleScheduleLock}
+              disabled={!scheduleLockInput}
+            >
+              Set Schedule
             </Button>
           </div>
         </div>

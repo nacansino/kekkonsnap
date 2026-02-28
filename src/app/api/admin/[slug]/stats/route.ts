@@ -63,5 +63,6 @@ export async function GET(
     participatingGuests,
     photosPerGuest,
     eventStatus: event.status,
+    scheduledLockAt: event.scheduledLockAt?.toISOString() ?? null,
   });
 }

@@ -1,7 +1,29 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from "react";
 import Image from "next/image";
+
+const LOADING_MESSAGES = [
+  "Developing this one in the darkroom",
+  "Adjusting the bouquet toss angle",
+  "Removing uncle\u2019s photobomb",
+  "Adding extra sparkle",
+  "Checking everyone\u2019s best side",
+  "Fluffing the veil",
+  "Polishing the rings",
+  "Asking the photographer to step aside",
+  "Making sure nobody blinked",
+  "Worth the wait, we promise",
+];
+
+function hashCode(str: string | number): number {
+  const s = String(str);
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    hash = (hash * 31 + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
 
 interface Photo {
   id: number | string;
@@ -21,6 +43,8 @@ interface PhotoLightboxProps {
   isOpen?: boolean;
   /** Used when the lightbox is rendered conditionally (always open when mounted) */
   initialIndex?: number;
+  /** Optional footer rendered below the image, receives current photo and index */
+  renderFooter?: (photo: Photo, index: number) => ReactNode;
 }
 
 export default function PhotoLightbox({
@@ -29,6 +53,7 @@ export default function PhotoLightbox({
   currentIndex,
   isOpen,
   initialIndex,
+  renderFooter,
 }: PhotoLightboxProps) {
   // Support both API styles:
   // 1. controlled: currentIndex + isOpen
@@ -40,17 +65,20 @@ export default function PhotoLightbox({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchDelta, setTouchDelta] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIndex(currentIndex ?? initialIndex ?? 0);
+    setImageLoaded(false);
   }, [currentIndex, initialIndex]);
 
   const goTo = useCallback(
     (direction: -1 | 1) => {
       if (isAnimating) return;
       setIsAnimating(true);
+      setImageLoaded(false);
       setIndex((prev) => {
         const next = prev + direction;
         if (next < 0) return 0;
@@ -112,6 +140,11 @@ export default function PhotoLightbox({
     setTouchStart(null);
     setTouchDelta(0);
   }, [touchStart, touchDelta, goTo]);
+
+  const loadingMessage = useMemo(() => {
+    const id = photos[index]?.id ?? index;
+    return LOADING_MESSAGES[hashCode(id) % LOADING_MESSAGES.length];
+  }, [photos, index]);
 
   if (!visible || photos.length === 0) return null;
 
@@ -219,27 +252,56 @@ export default function PhotoLightbox({
         </button>
       )}
 
-      {/* Image */}
-      <div ref={imageRef} className="relative h-[85dvh] w-[95vw] pointer-events-none">
-        <Image
-          key={String(photo.id)}
-          src={imageUrl}
-          alt={photo.alt ?? `Photo ${index + 1}`}
-          fill
-          unoptimized
-          sizes="95vw"
-          className="
-            object-contain
-            select-none
-            transition-all duration-300 ease-out
-            animate-[fadeIn_200ms_ease-out]
-          "
-          style={{
-            transform:
-              touchDelta !== 0 ? `translateX(${touchDelta * 0.4}px)` : undefined,
-          }}
-          draggable={false}
-        />
+      {/* Image + optional footer */}
+      <div className="flex flex-col items-center max-h-[95dvh] w-[95vw]">
+        <div ref={imageRef} className={`relative w-full pointer-events-none ${renderFooter ? "h-[75dvh]" : "h-[85dvh]"}`}>
+          <Image
+            key={String(photo.id)}
+            src={imageUrl}
+            alt={photo.alt ?? `Photo ${index + 1}`}
+            fill
+            unoptimized
+            sizes="95vw"
+            className="
+              object-contain
+              select-none
+              transition-all duration-300 ease-out
+              animate-[fadeIn_200ms_ease-out]
+            "
+            style={{
+              transform:
+                touchDelta !== 0 ? `translateX(${touchDelta * 0.4}px)` : undefined,
+            }}
+            draggable={false}
+            onLoad={() => setImageLoaded(true)}
+          />
+
+          {/* Loading overlay with blurred thumbnail + witty message */}
+          <div
+            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
+              imageLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
+          >
+            {photo.thumbnailUrl && (
+              <img
+                src={photo.thumbnailUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ filter: "blur(20px)", transform: "scale(1.1)" }}
+                draggable={false}
+              />
+            )}
+            <span className="relative z-10 font-body text-sm text-white/80 animate-pulse">
+              {loadingMessage}…
+            </span>
+          </div>
+        </div>
+
+        {renderFooter && (
+          <div className="pointer-events-auto w-full max-w-lg mt-3 px-4">
+            {renderFooter(photo, index)}
+          </div>
+        )}
       </div>
     </div>
   );

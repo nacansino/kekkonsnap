@@ -1,0 +1,1 @@
+ALTER TABLE `events` ADD `scheduled_lock_at` integer;

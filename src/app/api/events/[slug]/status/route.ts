@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { getSessionFromCookie } from "@/lib/auth";
 import { eventEmitter, EventChangePayload } from "@/lib/event-emitter";
 import { SSE_HEARTBEAT_INTERVAL_MS } from "@/lib/constants";
+import { checkScheduledLocks } from "@/lib/schedule-checker";
 
 export async function GET(
   request: NextRequest,
@@ -75,10 +76,11 @@ export async function GET(
 
       eventEmitter.on("eventChange", onEventChange);
 
-      // Heartbeat to keep connection alive
+      // Heartbeat to keep connection alive + check scheduled locks
       const heartbeatInterval = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+          checkScheduledLocks().catch(() => {});
         } catch {
           clearInterval(heartbeatInterval);
         }

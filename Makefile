@@ -15,7 +15,7 @@ stop:
 		PID=$$(cat .pid); \
 	else \
 		rm -f .pid; \
-		PID=$$(pgrep -f "next-server" | head -1); \
+		PID=$$(pgrep -f "[n]ext-server" | head -1); \
 	fi; \
 	if [ -n "$$PID" ]; then \
 		kill $$PID; \
