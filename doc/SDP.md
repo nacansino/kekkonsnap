@@ -266,10 +266,17 @@ on push / PR:
 
 ### Deployment trigger
 
-For a self-hosted VPS:
+For a self-hosted VPS with systemd services:
 
 ```bash
 # On the server (triggered by webhook, SSH, or manual):
+git pull
+make deploy   # stops service, rebuilds, starts service + tunnel
+```
+
+For Docker-based deployments:
+
+```bash
 git pull
 docker compose up -d --build
 ```
@@ -281,7 +288,7 @@ For more sophisticated setups, use a CI step that SSHs into the server or pushes
 A `Makefile` provides memorable shortcuts that work everywhere:
 
 ```makefile
-.PHONY: all build start stop test test-e2e test-all
+.PHONY: all build start stop restart deploy status logs test test-e2e test-all
 
 all: stop build start
 
@@ -289,10 +296,21 @@ build:
 	npm run build
 
 start:
-	nohup npm start > /tmp/app.log 2>&1 & echo $$! > .pid
+	systemctl --user start myapp
 
 stop:
-	# Graceful PID-based stop with fallback to pgrep
+	systemctl --user stop myapp
+
+restart:
+	systemctl --user restart myapp
+
+deploy: stop build start
+
+status:
+	systemctl --user status myapp
+
+logs:
+	journalctl --user -u myapp -f
 
 test:
 	npm test
@@ -307,7 +325,8 @@ Benefits over npm scripts alone:
 
 - `make` is available on every Unix system
 - Targets compose naturally (`test-all: test test-e2e`)
-- Process management (start/stop) belongs in Make, not `package.json`
+- Process management via systemd — auto-restart on failure, auto-start on boot
+- Logs via `journalctl` — structured, rotated, persistent
 
 ## 7. Development workflow
 

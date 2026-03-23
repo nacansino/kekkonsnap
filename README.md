@@ -127,7 +127,28 @@ The agent will know where to find the schema, conventions, test patterns, and ar
 
 ## Deploy
 
-### Docker + Caddy (recommended)
+### Systemd + Cloudflare Tunnel (production)
+
+The app and tunnel run as systemd user services that auto-start on boot.
+
+```bash
+# First-time setup
+sudo loginctl enable-linger deltacorn    # services run without login
+systemctl --user daemon-reload
+systemctl --user enable --now kekkonsnap
+systemctl --user enable --now kekkonsnap-tunnel
+```
+
+Service files live at `~/.config/systemd/user/kekkonsnap.service` and `kekkonsnap-tunnel.service`.
+
+```bash
+make status       # check both services
+make logs         # tail app logs
+make logs-tunnel  # tail tunnel logs
+make deploy       # rebuild and restart everything
+```
+
+### Docker + Caddy (alternative)
 
 ```bash
 # Edit .env with production values
@@ -228,8 +249,15 @@ npm run test:e2e
 | Command | Description |
 |---|---|
 | `make build` | Production build |
-| `make start` | Start production server (daemon) |
-| `make stop` | Stop production server |
+| `make start` | Start app (systemd) |
+| `make stop` | Stop app (systemd) |
+| `make restart` | Restart app (systemd) |
+| `make deploy` | Stop, rebuild, start app + tunnel |
+| `make status` | Show status of app and tunnel services |
+| `make logs` | Tail app logs (journalctl) |
+| `make logs-tunnel` | Tail tunnel logs (journalctl) |
+| `make tunnel` | Start Cloudflare Tunnel (systemd) |
+| `make tunnel-stop` | Stop Cloudflare Tunnel (systemd) |
 | `make test` | Run unit tests |
 | `make test-e2e` | Run Playwright e2e tests |
 | `make test-e2e-ui` | Open Playwright interactive UI |

@@ -15,7 +15,6 @@ import {
  */
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
-
   // --- Admin protected routes ---
   // Matches: /admin/[slug]/dashboard, /admin/[slug]/guests (and sub-paths)
   const adminProtectedMatch = pathname.match(

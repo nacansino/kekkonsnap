@@ -68,7 +68,9 @@ export default function AdminDashboardPage() {
   const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setOrigin(window.location.origin);
+    const loc = window.location;
+    const host = loc.hostname.replace(/^admin\./, "");
+    setOrigin(`${loc.protocol}//${host}${loc.port ? `:${loc.port}` : ""}`);
   }, []);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

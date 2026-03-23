@@ -35,6 +35,14 @@ npm run build            # production build (also validates TypeScript)
 npm run lint             # eslint
 ```
 
+Production (systemd services):
+```bash
+make deploy              # stop, rebuild, start app + tunnel
+make status              # check app and tunnel services
+make logs                # tail app logs (journalctl)
+make restart             # restart app without rebuilding
+```
+
 ## Before submitting changes
 
 1. `npm test` — all 166 tests must pass
